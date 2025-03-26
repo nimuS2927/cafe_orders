@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>{% if form.instance.pk %}Редактировать заказ{% else %}Создать заказ{% endif %}</h2>
+<form method="post">
+    {% csrf_token %}
+    {{ form.table_number.label_tag }} {{ form.table_number }} <br>
+    {{ form.products.label_tag }} {{ form.products }} <br>
+    {{ form.quantity.label_tag }} {{ form.quantity }} <br>
+    {{ form.status.label_tag }} {{ form.status }} <br>
+    <button type="submit">Сохранить</button>
+
+    <button type="submit">Сохранить</button>
+</form>
+<a href="{% url 'order_list' %}">Назад</a>
+{% endblock %}

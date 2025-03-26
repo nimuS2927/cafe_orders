@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+
+</body>
+</html>{% extends "base.html" %}
+
+{% block content %}
+<h2>Список заказов</h2>
+<a href="{% url 'order_create' %}">Создать новый заказ</a>
+<table border="1">
+    <tr>
+        <th>ID</th>
+        <th>Стол</th>
+        <th>Блюда</th>
+        <th>Стоимость</th>
+        <th>Статус</th>
+        <th>Действия</th>
+    </tr>
+    {% for order in orders %}
+    <tr>
+        <td>{{ order.id }}</td>
+        <td>{{ order.table_number }}</td>
+        <td>
+            {% for item in order.order_items.all %}
+                {{ item.product.name }} ({{ item.quantity }} шт) - {{ item.product.price }}₽ <br>
+            {% endfor %}
+        </td>
+        <td>{{ order.total_price }}₽</td>
+        <td>{{ order.get_status_display }}</td>
+        <td>
+            <a href="{% url 'order_update' order.id %}">Редактировать</a> |
+            <a href="{% url 'order_delete' order.id %}">Удалить</a>
+        </td>
+    </tr>
+    {% endfor %}
+</table>
+{% endblock %}
