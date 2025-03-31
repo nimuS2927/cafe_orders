@@ -1,3 +1,21 @@
+<style>
+    .order-table {
+        width: 100%;
+        border-collapse: collapse;
+        border: 1px solid black;
+    }
+
+    .order-table th, .order-table td {
+        text-align: center;
+        padding: 8px;
+        border: 1px solid black;
+    }
+
+    .order-table th {
+        background-color: #f2f2f2;
+    }
+</style>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -12,12 +30,12 @@
 {% block content %}
 <h2>Список заказов</h2>
 <a href="{% url 'order_create' %}">Создать новый заказ</a>
-<table border="1">
+<table class="order-table">
     <tr>
         <th>ID</th>
         <th>Стол</th>
         <th>Блюда</th>
-        <th>Стоимость</th>
+        <th>Стоимость заказа</th>
         <th>Статус</th>
         <th>Действия</th>
     </tr>
@@ -27,7 +45,7 @@
         <td>{{ order.table_number }}</td>
         <td>
             {% for item in order.order_items.all %}
-                {{ item.product.name }} ({{ item.quantity }} шт) - {{ item.product.price }}₽ <br>
+                {{ item.product.name }} ({{ item.quantity }} шт) - {{ item.product.price }}₽/шт <br>
             {% endfor %}
         </td>
         <td>{{ order.total_price }}₽</td>

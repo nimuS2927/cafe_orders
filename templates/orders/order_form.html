@@ -1,16 +1,95 @@
 {% extends "orders/base.html" %}
-
 {% block content %}
-<h2>{% if form.instance.pk %}Редактировать заказ{% else %}Создать заказ{% endif %}</h2>
-<form method="post">
-    {% csrf_token %}
-    {{ form.table_number.label_tag }} {{ form.table_number }} <br>
-    {{ form.products.label_tag }} {{ form.products }} <br>
-    {{ form.quantity.label_tag }} {{ form.quantity }} <br>
-    {{ form.status.label_tag }} {{ form.status }} <br>
-    <button type="submit">Сохранить</button>
+    <div class="container">
+        <h2>{% if object %}Редактировать заказ{% else %}Создать заказ{% endif %}</h2>
+        <form method="post">
+            {% csrf_token %}
+            <fieldset class="mb-3">
+                <legend>Данные заказа</legend>
+                {{ form.as_p }}
+            </fieldset>
 
-    <button type="submit">Сохранить</button>
-</form>
-<a href="{% url 'order_list' %}">Назад</a>
+            <fieldset class="mb-3">
+                <legend>Блюда</legend>
+                {{ formset.management_form }}
+                <div id="formset">
+                    {% for form in formset %}
+                        <div class="border p-2 mb-2 formset-item">
+                            {{ form.id }}
+                            <p class="mb-2">
+                                {{ form.product.label_tag }} {{ form.product }}
+                            </p>
+                            <p class="mb-2">
+                                {{ form.quantity.label_tag }} {{ form.quantity }}
+                            </p>
+                            <button type="button" class="btn btn-danger remove-item">Удалить</button>
+                        </div>
+                    {% endfor %}
+                </div>
+            </fieldset>
+
+            <button type="button" id="add-item" class="btn btn-add-item">Добавить блюдо</button>
+            <button type="submit" class="btn btn-success">{% if object %}Сохранить заказ{% else %}Создать заказ{% endif %}</button>
+            <a href="{% url 'order_list' %}" class="btn btn-unsuccessful">Отмена</a>
+            {% if form.errors %}
+                <div class="alert alert-danger">
+                    <strong>Ошибки в форме:</strong>
+                    <ul>
+                        {% for field in form %}
+                            {% for error in field.errors %}
+                                <li>{{ error }}</li>
+                            {% endfor %}
+                        {% endfor %}
+                    </ul>
+                </div>
+            {% endif %}
+        </form>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            let formsetDiv = document.getElementById("formset");
+            let totalForms = document.querySelector('[name="order_items-TOTAL_FORMS"]');
+
+            // Шаблон пустой формы
+            let emptyFormTemplate = document.querySelector(".formset-item").cloneNode(true);
+            emptyFormTemplate.querySelectorAll("input, select").forEach(input => input.value = ""); // Очищаем значения
+
+            document.getElementById("add-item").addEventListener("click", function () {
+                let formIndex = totalForms.value;
+                let newForm = emptyFormTemplate.cloneNode(true);
+
+                // Обновляем индексы всех полей формы
+                newForm.querySelectorAll('input, select').forEach(input => {
+                    // Обновляем атрибут name, id, for, и value для каждого поля
+                    let name = input.getAttribute('name');
+                    if (name) {
+                        input.setAttribute('name', name.replace(/\d+/, formIndex));
+                    }
+                    let id = input.getAttribute('id');
+                    if (id) {
+                        input.setAttribute('id', id.replace(/\d+/, formIndex));
+                    }
+                    let forAttr = input.getAttribute('for');
+                    if (forAttr) {
+                        input.setAttribute('for', forAttr.replace(/\d+/, formIndex));
+                    }
+                });
+
+                // Добавляем новую форму в formset
+                formsetDiv.appendChild(newForm);
+
+                // Увеличиваем значение для TOTAL_FORMS
+                totalForms.value = parseInt(totalForms.value) + 1;
+            });
+
+            // Удаление формы блюда
+            document.addEventListener("click", function (event) {
+                if (event.target.classList.contains("remove-item")) {
+                    event.target.closest(".formset-item").remove();
+                    totalForms.value = parseInt(totalForms.value) - 1; // Уменьшаем счетчик форм
+                }
+            });
+        });
+    </script>
 {% endblock %}

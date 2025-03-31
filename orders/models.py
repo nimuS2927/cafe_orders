@@ -16,7 +16,7 @@ class Product(models.Model):
     status = models.CharField(max_length=12, choices=STATUS_CHOICES, default='available', verbose_name="Статус")
 
     def __str__(self):
-        return f"{self.name} - {self.price}₽ ({self.get_status_display()})"
+        return f"{self.name} - {self.price}₽/шт ({self.get_status_display()})"
 
 
 class Order(models.Model):
@@ -40,7 +40,19 @@ class Order(models.Model):
         Пересчитывает общую стоимость заказа на основе товаров и их количества.
         """
         self.total_price = sum(item.product.price * item.quantity for item in self.order_items.all())
-        self.save()
+
+    def save(self, *args, **kwargs):
+        """
+        Кастомное сохранение, добавляем логику пересчета общей стоимости перед сохранением.
+        """
+        # Сохраняем заказ, чтобы он получил primary key
+        super(Order, self).save(*args, **kwargs)
+
+        # Пересчитываем стоимость перед сохранением
+        self.calculate_total_price()
+
+        # После пересчета стоимости снова сохраняем заказ
+        super(Order, self).save(update_fields=['total_price'])
 
     def __str__(self):
         return f"Заказ {self.id} (Стол {self.table_number}) - {self.get_status_display()}"
@@ -56,3 +68,7 @@ class OrderItem(models.Model):
 
     def __str__(self):
         return f"{self.product.name} x{self.quantity} в заказе {self.order.id}"
+
+    def subtotal(self):
+        """Стоимость позиции"""
+        return self.product.price * self.quantity
